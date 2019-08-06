@@ -148,7 +148,7 @@ spec:
                 configMapKeyRef:
                   name: ironic-bmo-configmap
                   key: http_ip
-            - name: INTERFACE
+            - name: PROVISIONING_INTERFACE
               valueFrom:
                 configMapKeyRef:
                   name: ironic-bmo-configmap
@@ -159,7 +159,7 @@ spec:
           securityContext:
             privileged: true
           env:
-            - name: INTERFACE
+            - name: PROVISIONING_INTERFACE
               valueFrom:
                 configMapKeyRef:
                   name: ironic-bmo-configmap

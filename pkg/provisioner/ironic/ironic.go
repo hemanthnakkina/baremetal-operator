@@ -3,6 +3,7 @@ package ironic
 import (
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -239,11 +240,18 @@ func (p *ironicProvisioner) ValidateManagementAccess(credentialsChanged bool) (r
 	if ironicNode == nil {
 		p.log.Info("registering host in ironic")
 
+		// TODO(nh863p): All Interfaces should come from access interface module
+		// They are hardcoded for now. And also interface should be part of options
+		// if it is None
 		ironicNode, err = nodes.Create(
 			p.client,
 			nodes.CreateOpts{
 				Driver:        p.bmcAccess.Driver(),
-				BootInterface: p.bmcAccess.BootInterface(),
+				// TODO(nh863p): Bad fix to comment below line to test ironic
+				// BootInterface: p.bmcAccess.BootInterface(),
+				InspectInterface: "redfish",
+				ManagementInterface: "redfish",
+				PowerInterface: "redfish",
 				Name:          p.host.Name,
 				DriverInfo:    driverInfo,
 			}).Extract()
@@ -589,7 +597,48 @@ func (p *ironicProvisioner) InspectHardware() (result provisioner.Result, detail
 
 	status, err := introspection.GetIntrospectionStatus(p.inspector, ironicNode.UUID).Extract()
 	if err != nil {
-		if _, isNotFound := err.(gophercloud.ErrDefault404); isNotFound {
+		_, isNotFound := err.(gophercloud.ErrDefault404)
+		_, isConnectionRefused := err.(net.Error)
+		if isNotFound || isConnectionRefused {
+
+                        switch nodes.ProvisionState(ironicNode.ProvisionState) {
+                        case nodes.Inspecting:
+                                p.log.Info("inspection in progress", "started_at", "time unknown")
+                                result.Dirty = true // make sure we check back
+                                result.RequeueAfter = introspectionRequeueDelay
+                                return
+
+                        case nodes.InspectFail:
+                                p.log.Info("inspection failed", "error", ironicNode.LastError)
+                                result.ErrorMessage = ironicNode.LastError
+                                return
+
+                        case nodes.Manageable:
+                                // TODO(nh863p): If hardware details are updated then assume inspection
+                                // is completed. Assumption the node which is in maangeable state without
+                                // hardware details is not yet inspected.
+                                // However this logic breaks any updates to hardware details or if user
+                                // want to inspect second time. This is a tweak for now to proceed.
+                                if _, ok := ironicNode.Properties["local_gb"]; ok {
+                                        err = nil
+                                        p.log.Info("inspection status", "current state", "manageable from inspection")
+                                        // TODO(nh863p): Update hardware details
+                                        details_derived := new(metal3v1alpha1.HardwareDetails)
+                                        cpu := metal3v1alpha1.CPU{
+                                                Arch:           "x86_64",
+                                                Model:          "Dell",
+                                                ClockMegahertz: metal3v1alpha1.ClockSpeed(3.0) * metal3v1alpha1.MegaHertz,
+                                                Count:          88,
+                                                Flags:          []string{"fpu", "hypervisor", "sse", "vmx"},
+                                        }
+                                        details_derived.CPU = cpu
+                                        details = details_derived
+                                        p.publisher("InspectionComplete", "Hardware inspection completed")
+                                        return
+                                }
+
+                        }
+
 			p.log.Info("starting new hardware inspection")
 			result, err = p.changeNodeProvisionState(
 				ironicNode,

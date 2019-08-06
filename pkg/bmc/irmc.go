@@ -54,3 +54,8 @@ func (a *iRMCAccessDetails) DriverInfo(bmcCreds Credentials) map[string]interfac
 func (a *iRMCAccessDetails) BootInterface() string {
 	return "pxe"
 }
+
+func (a *iRMCAccessDetails) InspectInterface() string {
+	// TODO(nh863p): Have to check
+        return "fake"
+}

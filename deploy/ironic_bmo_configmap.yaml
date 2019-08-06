@@ -5,7 +5,7 @@ metadata:
 data:
   http_port: "6180"
   http_ip: "172.22.0.1"
-  interface: "ens3"
+  interface: "enp0s3"
   dhcp_range: "172.22.0.10,172.22.0.100"
   deploy_kernel_url: "http://172.22.0.1/images/ironic-python-agent.kernel"
   deploy_ramdisk_url: "http://172.22.0.1/images/ironic-python-agent.initramfs"

@@ -46,6 +46,9 @@ type AccessDetails interface {
 
 	// Boot interface to set
 	BootInterface() string
+
+	// Inspect interface to set
+	InspectInterface() string
 }
 
 func getTypeHostPort(address string) (bmcType, host, port, path string, err error) {
