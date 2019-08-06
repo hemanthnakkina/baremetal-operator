@@ -116,6 +116,17 @@ deploy:
 	kubectl apply -f deploy/crds/metal3_v1alpha1_baremetalhost_crd.yaml
 	kubectl apply -f deploy/operator.yaml -n $(RUN_NAMESPACE)
 
+.PHONY: deploy-bmo-ironic
+deploy-bmo-ironic:
+        echo "{ \"kind\": \"Namespace\", \"apiVersion\": \"v1\", \"metadata\": { \"name\": \"$(RUN_NAMESPACE)\", \"labels\": { \"name\": \"$(RUN_NAMESPACE)\" } } }" | kubectl apply -f -
+        kubectl apply -f deploy/service_account.yaml -n $(RUN_NAMESPACE)
+        kubectl apply -f deploy/role.yaml -n $(RUN_NAMESPACE)
+        kubectl apply -f deploy/role_binding.yaml
+        kubectl apply -f deploy/crds/metal3_v1alpha1_baremetalhost_crd.yaml
+        kubectl apply -f deploy/ironic_bmo_configmap.yaml -n $(RUN_NAMESPACE)
+        kubectl apply -f deploy/mariadb-password-secretmap.yaml -n $(RUN_NAMESPACE)
+        kubectl apply -f deploy/operator_ironic.yaml -n $(RUN_NAMESPACE)
+
 .PHONY: dep-check
 dep-check:
 	dep check

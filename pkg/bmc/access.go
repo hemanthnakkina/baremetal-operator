@@ -34,6 +34,9 @@ type AccessDetails interface {
 	
 	// Boot interface to set
 	BootInterface() string
+
+	// Inspect interface to set
+	InspectInterface() string
 }
 
 func getTypeHostPort(address string) (bmcType, host, port, path string, err error) {
@@ -109,6 +112,13 @@ func NewAccessDetails(address string) (AccessDetails, error) {
 		}
 	case "idrac", "idrac+http", "idrac+https":
 		addr = &iDracAccessDetails{
+			bmcType:  bmcType,
+			portNum:  port,
+			hostname: host,
+			path:     path,
+		}
+	case "redfish+http", "redfish+https":
+		addr = &redfishAccessDetails{
 			bmcType:  bmcType,
 			portNum:  port,
 			hostname: host,

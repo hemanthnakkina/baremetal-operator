@@ -1,0 +1,46 @@
+
+To run BMO with redfish, we require certain changes in ironic.
+Need to build local ironic images with following changes
+
+Project: metal3-io/ironic-image
+
+diff --git a/runironic.sh b/runironic.sh
+index d844048..c99f1e4 100755
+--- a/runironic.sh
++++ b/runironic.sh
+@@ -29,14 +29,14 @@ crudini --set /etc/ironic/ironic.conf DEFAULT my_ip "$IRONIC_IP"
+ crudini --set /etc/ironic/ironic.conf DEFAULT debug true
+ crudini --set /etc/ironic/ironic.conf DEFAULT default_network_interface noop
+ crudini --set /etc/ironic/ironic.conf DEFAULT enabled_boot_interfaces pxe,ipxe,fake
+-crudini --set /etc/ironic/ironic.conf DEFAULT enabled_power_interfaces ipmitool,idrac,fake
+-crudini --set /etc/ironic/ironic.conf DEFAULT enabled_management_interfaces ipmitool,idrac,fake
+-crudini --set /etc/ironic/ironic.conf DEFAULT enabled_hardware_types ipmi,idrac,fake-hardware
++crudini --set /etc/ironic/ironic.conf DEFAULT enabled_power_interfaces ipmitool,idrac,fake,redfish
++crudini --set /etc/ironic/ironic.conf DEFAULT enabled_management_interfaces ipmitool,idrac,fake,redfish
++crudini --set /etc/ironic/ironic.conf DEFAULT enabled_hardware_types ipmi,idrac,fake-hardware,redfish
+ crudini --set /etc/ironic/ironic.conf DEFAULT enabled_vendor_interfaces ipmitool,no-vendor,idrac,fake
+ crudini --set /etc/ironic/ironic.conf DEFAULT enabled_deploy_interfaces direct,fake
+ crudini --set /etc/ironic/ironic.conf DEFAULT default_boot_interface ipxe
+ crudini --set /etc/ironic/ironic.conf DEFAULT default_deploy_interface direct
+-crudini --set /etc/ironic/ironic.conf DEFAULT enabled_inspect_interfaces inspector,idrac,fake
++crudini --set /etc/ironic/ironic.conf DEFAULT enabled_inspect_interfaces inspector,idrac,fake,redfish
+ crudini --set /etc/ironic/ironic.conf DEFAULT default_inspect_interface inspector
+ crudini --set /etc/ironic/ironic.conf DEFAULT rpc_transport json-rpc
+ crudini --set /etc/ironic/ironic.conf conductor enable_mdns True
+
+
+Project: metal3-io/ironic-inspector-image
+
+diff --git a/runironic-inspector.sh b/runironic-inspector.sh
+index c0ef5ff..b045b5e 100644
+--- a/runironic-inspector.sh
++++ b/runironic-inspector.sh
+@@ -28,5 +28,6 @@ cp $CONFIG $CONFIG.orig
+ crudini --set $CONFIG ironic endpoint_override http://$PROVISIONING_IP:6385
+ crudini --set $CONFIG service_catalog endpoint_override http://$PROVISIONING_IP:5050
+ crudini --set $CONFIG mdns interfaces $PROVISIONING_IP
++crudini --set $CONFIG discovery enroll_node_driver redfish
+
+ /usr/bin/python2 /usr/bin/ironic-inspector --config-file /etc/ironic-inspector/inspector-dist.conf --config-file /etc/ironic-inspector/inspector.conf --log-file /shared/log/ironic-inspector/ironic-inspector.log
+
+

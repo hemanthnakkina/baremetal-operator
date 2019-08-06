@@ -54,3 +54,7 @@ func (a *iDracAccessDetails) DriverInfo(bmcCreds Credentials) map[string]interfa
 func (a *iDracAccessDetails) BootInterface() string {
 	return "ipxe"
 }
+
+func (a *iDracAccessDetails) InspectInterface() string {
+	return "idrac"
+}
