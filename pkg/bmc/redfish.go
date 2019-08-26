@@ -4,6 +4,20 @@ import (
         "strings"
 )
 
+func init() {
+        registerFactory("redfish+http", newRedfishAccessDetails)
+        registerFactory("redfish+https", newRedfishAccessDetails)
+}
+
+func newRedfishAccessDetails(bmcType, portNum, hostname, path string) (AccessDetails, error) {
+        return &redfishAccessDetails{
+                bmcType:  bmcType,
+                portNum:  portNum,
+                hostname: hostname,
+                path:     path,
+        }, nil
+}
+
 type redfishAccessDetails struct {
         bmcType  string
         portNum  string
@@ -11,12 +25,12 @@ type redfishAccessDetails struct {
         path     string
 }
 
+const redfishDefaultPort = "443"
+
 func (a *redfishAccessDetails) Type() string {
         return a.bmcType
 }
 
-// NeedsMAC returns true when the host is going to need a separate
-// port created rather than having it discovered.
 func (a *redfishAccessDetails) NeedsMAC() bool {
         return false
 }
@@ -31,7 +45,7 @@ func (a *redfishAccessDetails) Driver() string {
 // expected to add any other information that might be needed (such as
 // the kernel and ramdisk locations).
 func (a *redfishAccessDetails) DriverInfo(bmcCreds Credentials) map[string]interface{} {
-        // TODO(nh863p): Hardcoded redfish_verify_ca, redfish_auth_type
+        // TODO(nh863p): redfish_system_id, redfish_auth_type hardcoded
         result := map[string]interface{}{
                 "redfish_username": bmcCreds.Username,
                 "redfish_password": bmcCreds.Password,

@@ -240,6 +240,19 @@ func (p *ironicProvisioner) ValidateManagementAccess(credentialsChanged bool) (r
 	if ironicNode == nil {
 		p.log.Info("registering host in ironic")
 
+<<<<<<< HEAD
+=======
+		driverInfo := p.bmcAccess.DriverInfo(p.bmcCreds)
+		// FIXME(dhellmann): The names of the images are tied
+		// to the version of ironic we are using and are
+		// likely to change.
+		//
+		// FIXME(dhellmann): We need to get our IP on the
+		// provisioning network from somewhere.
+		driverInfo["deploy_kernel"] = deployKernelURL
+		driverInfo["deploy_ramdisk"] = deployRamdiskURL
+
+>>>>>>> e79a7d84f8e0c76e1b72c806c833c6ec6d1c14c2
 		// TODO(nh863p): All Interfaces should come from access interface module
 		// They are hardcoded for now. And also interface should be part of options
 		// if it is None
@@ -631,7 +644,42 @@ func (p *ironicProvisioner) InspectHardware() (result provisioner.Result, detail
                                                 Count:          88,
                                                 Flags:          []string{"fpu", "hypervisor", "sse", "vmx"},
                                         }
+					storage := []metal3v1alpha1.Storage{
+                                                metal3v1alpha1.Storage{
+                                                        Name:       "disk-1 (boot)",
+                                                        Rotational: false,
+                                                        SizeBytes:  metal3v1alpha1.TebiByte * 93,
+                                                        Model:      "Dell CFJ61",
+                                                },
+                                                metal3v1alpha1.Storage{
+                                                        Name:       "disk-2",
+                                                        Rotational: false,
+                                                        SizeBytes:  metal3v1alpha1.TebiByte * 93,
+                                                        Model:      "Dell CFJ61",
+                                                },
+                                        }
+					nic := []metal3v1alpha1.NIC{
+                                                metal3v1alpha1.NIC{
+                                                        Name:      "nic-1",
+                                                        Model:     "virt-io",
+                                                        MAC:       "some:mac:address",
+                                                        IP:        "192.168.100.1",
+                                                        SpeedGbps: 1,
+                                                        PXE:       true,
+                                                },
+                                                metal3v1alpha1.NIC{
+                                                        Name:      "nic-2",
+                                                        Model:     "e1000",
+                                                        MAC:       "some:other:mac:address",
+                                                        IP:        "192.168.100.2",
+                                                        SpeedGbps: 1,
+                                                        PXE:       false,
+                                                },
+                                        }
                                         details_derived.CPU = cpu
+					details_derived.Storage = storage
+                                        details_derived.RAMMebibytes = 128 * 1024
+                                        details_derived.NIC = nic
                                         details = details_derived
                                         p.publisher("InspectionComplete", "Hardware inspection completed")
                                         return
