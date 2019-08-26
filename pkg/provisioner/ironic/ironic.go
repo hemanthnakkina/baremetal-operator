@@ -240,6 +240,19 @@ func (p *ironicProvisioner) ValidateManagementAccess(credentialsChanged bool) (r
 	if ironicNode == nil {
 		p.log.Info("registering host in ironic")
 
+<<<<<<< HEAD
+=======
+		driverInfo := p.bmcAccess.DriverInfo(p.bmcCreds)
+		// FIXME(dhellmann): The names of the images are tied
+		// to the version of ironic we are using and are
+		// likely to change.
+		//
+		// FIXME(dhellmann): We need to get our IP on the
+		// provisioning network from somewhere.
+		driverInfo["deploy_kernel"] = deployKernelURL
+		driverInfo["deploy_ramdisk"] = deployRamdiskURL
+
+>>>>>>> e79a7d84f8e0c76e1b72c806c833c6ec6d1c14c2
 		// TODO(nh863p): All Interfaces should come from access interface module
 		// They are hardcoded for now. And also interface should be part of options
 		// if it is None
